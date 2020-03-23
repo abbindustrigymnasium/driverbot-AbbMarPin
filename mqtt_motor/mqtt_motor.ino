@@ -14,8 +14,9 @@
 const char *mqtt_server = "maqiatto.com";
 const char *topic = "martin.pind@abbindustrigymnasium.se/motor";
 const char *topic2 = "martin.pind@abbindustrigymnasium.se/servo";
-const char *user = "martin.pind@abbindustrigymnasium.se";
-const char *pass = "loaldoaldoawldoakdfigvjosgoshnbos";
+#include "password.h" // importerar lösenord och skapar variablarna
+                      // user och pass
+
 
 WiFiClient espClient;
 PubSubClient client(espClient);
