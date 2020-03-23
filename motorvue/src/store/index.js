@@ -3,13 +3,21 @@ import Vuex from 'vuex'
 
 Vue.use(Vuex)
 
-export default new Vuex.Store({
+
+const store = new Vuex.Store({
   state: {
-  },
-  mutations: {
-  },
-  actions: {
-  },
-  modules: {
+    slider: 0,
+    angle: 0,
+    onoff: 1,
+    mqtturl: "maqiatto.com",
   }
+  // mutations: {
+
+  // },
+  // actions: {
+  // },
+  // modules: {
+  // }
 })
+
+export default store

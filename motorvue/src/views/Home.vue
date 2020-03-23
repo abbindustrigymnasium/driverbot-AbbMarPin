@@ -13,10 +13,11 @@
               <h3 class="headline mb-0">Motor</h3>
             </v-col>
             <v-col cols="12">
+              <span>{{log}}</span>
+              <v-switch v-model="onoff" class="ma-2" label="Armed"></v-switch>
               <v-radio-group v-model="controloption">
                 <v-radio v-for="n in controloptions" :key="n" :label="`${n}`" :value="n"></v-radio>
               </v-radio-group>
-              <v-switch v-model="onoff" class="ma-2" label="Armed"></v-switch>
             </v-col>
           </v-row>
         </v-card-title>
@@ -47,6 +48,9 @@
 // import HelloWorld from "@/components/HelloWorld.vue";
 var mqtt = require("mqtt");
 
+// import {mapGetters} from 'vuex'
+// import {mapActions} from 'vuex'
+
 export default {
   name: "Home",
   components: {
@@ -59,13 +63,17 @@ export default {
     mqtturl: "maqiatto.com",
     connected: false,
     client: undefined,
-    controloption: "gamepad",
+    controloption: "sliders",
     controloptions: ["sliders", "gamepad"],
     turnleft: false,
     turnright: false,
     forward: false,
-    reverse: false
+    reverse: false,
+    log: ""
   }),
+  computed: {
+    // ...mapGetters(["slider", "angle", "onoff", "mqtturl"])
+  },
   created() {
     this.connect();
   },
