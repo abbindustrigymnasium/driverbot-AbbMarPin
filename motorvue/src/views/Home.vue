@@ -13,30 +13,119 @@
               <h3 class="headline mb-0">Motor</h3>
             </v-col>
             <v-col cols="12">
-              <span>{{log}}</span>
-              <v-switch v-model="onoff" class="ma-2" label="Armed"></v-switch>
-              <v-radio-group v-model="controloption">
-                <v-radio v-for="n in controloptions" :key="n" :label="`${n}`" :value="n"></v-radio>
-              </v-radio-group>
+              <v-dialog v-model="dialog" width="500">
+                <template v-slot:activator="{ on }">
+                  <v-btn dark v-on="on">Mqtt config</v-btn>
+                </template>
+
+                <v-card>
+                  <v-card-title class="headline" primary-title>MQTT CONFIG</v-card-title>
+                  <v-divider></v-divider>
+
+                  <v-form v-model="valid">
+                    <v-container>
+                      <v-row>
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                            v-model="temp_creds.url"
+                            :rules="urlrules"
+                            label="URL"
+                            required
+                          ></v-text-field>
+                        </v-col>
+
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                            v-model="temp_creds.port"
+                            :rules="portrules"
+                            type="number"
+                            label="Port"
+                            required
+                          ></v-text-field>
+                        </v-col>
+
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                            v-model="temp_creds.username"
+                            :rules="userrules"
+                            label="MQTT username"
+                            required
+                          ></v-text-field>
+                        </v-col>
+
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                            v-model="temp_creds.password"
+                            label="MQTT password"
+                            type="password"
+                            required
+                          ></v-text-field>
+                        </v-col>
+
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                            v-model="temp_creds.motor_topic"
+                            :rules="userrules"
+                            label="MQTT Motor topic"
+                            required
+                          ></v-text-field>
+                        </v-col>
+
+                        <v-col cols="12" md="4">
+                          <v-text-field
+                            v-model="temp_creds.servo_topic"
+                            :rules="userrules"
+                            label="MQTT Servo topic"
+                            required
+                          ></v-text-field>
+                        </v-col>
+                      </v-row>
+                    </v-container>
+                  </v-form>
+
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                      color="primary"
+                      text
+                      :disabled="!valid"
+                      @click="mqtt_state = false; mqttcontrol(); dialog = false"
+                    >save</v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
+              <v-switch
+                label="Connected to MQTT"
+                :color="mqtt_state ? 'success' : 'error'"
+                v-model="mqtt_state"
+                @change="mqttcontrol()"
+                :loading="(mqtt_state && !connected)"
+              ></v-switch>
             </v-col>
           </v-row>
         </v-card-title>
-        <v-card-actions v-if="controloption == controloptions[0]">
-          <v-row>
-            <v-col cols="12">
-              <v-btn @click="reset()">reset</v-btn>
-            </v-col>
-            <v-col cols="12">
-              <v-slider v-model="slider" min="-100" max="100" label="hastighet"></v-slider>
-            </v-col>
-            <v-col cols="12">
-              <v-slider v-model="angle" min="-100" max="100" label="styr"></v-slider>
-            </v-col>
-          </v-row>
-        </v-card-actions>
-        <v-card-actions v-if="controloption == controloptions[1]">
-          <span>Please connect an gamepad that's compadible with this browser</span>
-        </v-card-actions>
+        <v-container v-if="connected" grid-list-xs>
+          <v-radio-group v-model="controloption">
+            <v-radio v-for="n in controloptions" :key="n" :label="`${n}`" :value="n"></v-radio>
+          </v-radio-group>
+          <v-switch v-model="onoff" class="ma-2" label="Armed"></v-switch>
+          <v-card-actions v-if="controloption == controloptions[0]">
+            <v-row>
+              <v-col cols="12">
+                <v-btn @click="reset()">reset</v-btn>
+              </v-col>
+              <v-col cols="12">
+                <v-slider v-model="slider" min="-100" max="100" label="hastighet"></v-slider>
+              </v-col>
+              <v-col cols="12">
+                <v-slider v-model="angle" min="-100" max="100" label="styr"></v-slider>
+              </v-col>
+            </v-row>
+          </v-card-actions>
+          <v-card-actions v-else-if="controloption == controloptions[1]">
+            <span>Please connect an gamepad that's compadible with this browser</span>
+          </v-card-actions>
+        </v-container>
         <v-alert type="error" :value="!connected">Not connected!</v-alert>
       </v-card>
     </v-row>
@@ -57,56 +146,81 @@ export default {
     // HelloWorld
   },
   data: () => ({
+    temp_creds: {
+      url: "",
+      port: undefined,
+      username: "",
+      password: "",
+      motor_topic: "",
+      servo_topic: ""
+    },
+    creds: {
+      url: "maqiatto.com",
+      port: 8883,
+      username: "martin.pind@abbindustrigymnasium.se",
+      password: "loaldoaldoawldoakdfigvjosgoshnbos",
+      motor_topic: "martin.pind@abbindustrigymnasium.se/motor",
+      servo_topic: "martin.pind@abbindustrigymnasium.se/servo"
+    },
     slider: 0,
     angle: 0,
     onoff: 1,
-    mqtturl: "maqiatto.com",
     connected: false,
     client: undefined,
     controloption: "sliders",
     controloptions: ["sliders", "gamepad"],
+    dialog: false,
     turnleft: false,
     turnright: false,
     forward: false,
     reverse: false,
-    log: ""
+    urlrules: [
+      v => !!v || "URL is required",
+      v => /.+\..+/.test(v) || "URL must be valid"
+    ],
+    portrules: [v => !!v || "Port is required"],
+    userrules: [
+      v => !!v || "E-mail is required",
+      v => /.+@.+\..+/.test(v) || "E-mail must be valid"
+    ],
+    valid: false,
+    log: "",
+    mqtt_state: false,
+    interval: undefined
   }),
   computed: {
     // ...mapGetters(["slider", "angle", "onoff", "mqtturl"])
   },
-  created() {
-    this.connect();
-  },
-  mounted() {
-    setInterval(() => {
-      this.send();
-      this.turnleft = false;
-      this.turnright = false;
-      this.forward = false;
-      this.reverse = false;
-    }, 200);
-  },
+  mounted() {},
   methods: {
     send() {
       this.client.publish(
-        "martin.pind@abbindustrigymnasium.se/motor",
+        // "martin.pind@abbindustrigymnasium.se/motor",
+        this.creds.motor_topic,
         this.composemotor()
       );
 
       this.client.publish(
-        "martin.pind@abbindustrigymnasium.se/servo",
+        // "martin.pind@abbindustrigymnasium.se/servo",
+        this.creds.servo_topic,
         this.composeservo()
       );
+    },
+    mqttcontrol() {
+      if (this.mqtt_state) {
+        this.connect();
+      } else {
+        clearInterval(this.interval);
+        if (this.connected) {
+          this.client.end();
+        }
+      }
     },
     composemotor() {
       let Direction = 0;
       let speed = 0;
       if (this.controloption == this.controloptions[0]) {
-        if (this.onoff) {
-          this.onoff = 1;
-        } else {
-          this.onoff = 0;
-        }
+        this.onoff = this.onoff ? 1 : 0;
 
         if (this.slider > 0) {
           Direction = 0;
@@ -143,24 +257,37 @@ export default {
       return `${angle}`;
     },
     connect() {
-      var mqtt_url = this.mqtturl;
+      let self = this;
+      var mqtt_url = this.creds.url;
       var url = "mqtt://" + mqtt_url;
       var options = {
-        port: 8883,
+        port: this.creds.port,
         clientId:
           "mqttjs_" +
           Math.random()
             .toString(16)
             .substr(2, 8),
-        username: "martin.pind@abbindustrigymnasium.se",
-        password: "loaldoaldoawldoakdfigvjosgoshnbos"
+        // username: "martin.pind@abbindustrigymnasium.se",
+        // password: "loaldoaldoawldoakdfigvjosgoshnbos"
+        username: this.creds.username,
+        password: this.creds.password
       };
       console.log("connecting");
       this.client = mqtt.connect(url, options);
       this.client
         .on("connect", function() {
           console.log("connected!!!");
-          this.connected = true;
+          // self.callback_(true)
+          self.interval = setInterval(() => {
+            if (self.mqtt_state) {
+              self.send();
+            }
+            self.turnleft = false;
+            self.turnright = false;
+            self.forward = false;
+            self.reverse = false;
+          }, 200);
+          self.connected = true;
         })
         .on("message", function(topic, message) {
           // message is Buffer
@@ -168,14 +295,13 @@ export default {
         })
         .on("error", function(error) {
           console.log(error);
-          this.connected = false;
+          self.connected = false;
         })
         .on("close", function(error) {
-          console.log(error);
+          // console.log(error);
           console.log("closed");
-          this.connected = false;
+          self.connected = false;
         });
-      this.connected = true;
     },
     reset() {
       this.slider = 0;
@@ -185,8 +311,12 @@ export default {
     map_range(value, low1, high1, low2, high2) {
       return low2 + ((high2 - low2) * (value - low1)) / (high1 - low1);
     },
-    callback() {
-      console.log("AAAAAAAAAA");
+    callback_(state) {
+      // console.log("AAAAAAAAAAAA");
+      this.connected = state;
+    },
+    saveconf() {
+      this.creds = this.temp_creds;
     },
     _turnleft() {
       this.turnleft = true;
