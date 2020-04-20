@@ -3,7 +3,7 @@
 #include <Servo.h>
 #include <DNSServer.h>
 #include <PubSubClient.h> // behöver installeras
-#include "WiFiManager.h" //https://github.com/tzapu/WiFiManager
+#include "WiFiManager.h"  //https://github.com/tzapu/WiFiManager
 
 #define motorPinRightDir 0   //D2
 #define motorPinRightSpeed 5 //D1
@@ -17,10 +17,12 @@ const char *topic2 = "martin.pind@abbindustrigymnasium.se/servo";
 #include "password.h" // importerar lösenord och skapar variablarna
                       // user och pass
 
-
 WiFiClient espClient;
 PubSubClient client(espClient);
 Servo servo;
+
+String rikting;
+unsigned long time_now;
 
 void reconnect()
 {
@@ -92,17 +94,14 @@ void loop()
   }
   client.loop();
 
-  int speed = 1024;
-  int dir = 0;
+  // Serial.println("Loop!!!*");
 
-  // delay(2200);
-  // digitalWrite(motorPinRightDir, dir);
-  // analogWrite(motorPinRightSpeed, speed);
-  // delay(2200);
-  // digitalWrite(motorPinRightDir, 1);
-  // analogWrite(motorPinRightSpeed, speed);
+  if (millis() > time_now + 500)
+  { // autostop
+    Go(motorPinRightDir, motorPinRightSpeed, 0, 0);
 
-  // Drivetest3(motorPinLeftDir, motorPinLeftSpeed);
+    servo.write(90);
+  }
 }
 
 // Handle incomming messages from the broker
@@ -121,6 +120,8 @@ void callback(char *topic, byte *payload, unsigned int length)
     payloadStr += (char)payload[i];
   }
 
+  time_now = millis();
+
   // Serial.println("");
   // Serial.print("Message arrived - [");
   // Serial.print(topicStr);
@@ -134,20 +135,6 @@ void callback(char *topic, byte *payload, unsigned int length)
     int direction = payloadStr.substring(payloadStr.indexOf(',') + 1, payloadStr.lastIndexOf(',')).toInt();
     int speed = payloadStr.substring(payloadStr.lastIndexOf(',') + 1).toInt();
 
-    // Serial.println(valR);
-    // Serial.println(valG);
-    // Serial.println(valB);
-
-    // valR = constrain(valR, 0, 255);
-    // valG = constrain(valG, 0, 255);
-    // valB = constrain(valB, 0, 255);
-
-    // last_color[0] = valR;
-    // last_color[1] = valG;
-    // last_color[2] = valB;
-
-    // change(valR, valG, valB);
-
     if (onoff)
     {
       Go(motorPinRightDir, motorPinRightSpeed, direction, speed);
@@ -160,6 +147,12 @@ void callback(char *topic, byte *payload, unsigned int length)
   else if (topicStr == "martin.pind@abbindustrigymnasium.se/servo")
   {
     int angle = payloadStr.toInt();
+
+    if (!angle == 90)
+    {
+      rikting = (angle > 90) ? "Höger" : "Vänster";
+      Serial.println("Svänger " + rikting + " med ett värde av " + angle);
+    }
     servo.write(angle);
   }
 }
@@ -173,8 +166,11 @@ void Go(int Dirpin, int Speedpin, int Direction, int Speed)
 
   if (Speed != 0)
   {
-    Speed = map(Speed, 0, 100, 500, 1024);
+    Speed = map(Speed, 0, 100, 550, 1024);
+    rikting = (Direction) ? "Framåt" : "Bakåt";
+    Serial.println("Kör " + rikting + " med ett värde av " + Speed);
   }
+
   // Serial.println("Hastighet: " + String(Speed));
 
   digitalWrite(Dirpin, Direction);

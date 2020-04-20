@@ -123,7 +123,7 @@
             </v-row>
           </v-card-actions>
           <v-card-actions v-else-if="controloption == controloptions[1]">
-            <span>Please connect an gamepad that's compadible with this browser</span>
+            <span>Please connect an gamepad that's compadible with your browser</span>
           </v-card-actions>
         </v-container>
         <v-alert type="error" :value="!connected">Not connected!</v-alert>
@@ -186,7 +186,8 @@ export default {
     valid: false,
     log: "",
     mqtt_state: false,
-    interval: undefined
+    interval: undefined,
+    snacc: false
   }),
   computed: {
     // ...mapGetters(["slider", "angle", "onoff", "mqtturl"])
@@ -199,7 +200,6 @@ export default {
         this.creds.motor_topic,
         this.composemotor()
       );
-
       this.client.publish(
         // "martin.pind@abbindustrigymnasium.se/servo",
         this.creds.servo_topic,
@@ -223,28 +223,29 @@ export default {
         this.onoff = this.onoff ? 1 : 0;
 
         if (this.slider > 0) {
-          Direction = 0;
+          Direction = 1;
           speed = this.slider;
         } else if (this.slider < 0) {
-          Direction = 1;
+          Direction = 0;
           speed = this.slider * -1;
         }
         return `(${this.onoff},${Direction},${speed})`;
       } else if (this.controloption == this.controloptions[1]) {
         if (this.forward) {
-          Direction = this.forward ? 0 : 1;
+          Direction = this.forward ? 1 : 0;
           speed = this.forward ? 100 : 0;
         } else {
-          Direction = this.reverse ? 1 : 0;
+          Direction = this.reverse ? 0 : 1;
           speed = this.reverse ? 100 : 0;
         }
+        // console.log(`(${this.onoff},${Direction},${speed})`)
         return `(${this.onoff},${Direction},${speed})`;
       }
     },
     composeservo() {
       let angle = 90;
       if (this.controloption == this.controloptions[0]) {
-        let angle = this.map_range(this.angle, -100, 100, 180, 0);
+        angle = Math.round(this.map_range(this.angle, -100, 100, 180, 0));
       } else if (this.controloption == this.controloptions[1]) {
         if (this.turnleft) {
           angle = this.turnleft ? -100 : 0;
