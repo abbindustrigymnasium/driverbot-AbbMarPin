@@ -166,7 +166,7 @@ void Go(int Dirpin, int Speedpin, int Direction, int Speed)
 
   if (Speed != 0)
   {
-    Speed = map(Speed, 0, 100, 550, 1024);
+    Speed = map(Speed, 0, 100, 510, 1024);
     rikting = (Direction) ? "Framåt" : "Bakåt";
     Serial.println("Kör " + rikting + " med ett värde av " + Speed);
   }
