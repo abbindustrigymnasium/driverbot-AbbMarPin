@@ -1,6 +1,15 @@
 # driverbot-AbbMarPin
 driverbot-AbbMarPin created by GitHub Classroom
 
+## Hur funkar den?
+
+När en användare an startat hemsidan och kopplat upp sig till MQTT servern börjar hemisan skicka ett förflyttnings och styrpaket via MQTT till arduinon
+
+I dessa förflyttningspaket finns tre värden:
+* Av eller På
+* Hastiget
+* Riktning
+
 
 # Loggbok
 
