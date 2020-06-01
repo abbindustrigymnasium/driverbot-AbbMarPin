@@ -1,9 +1,9 @@
-#include <ESP8266WiFi.h> //https://github.com/esp8266/Arduino
+#include <ESP8266WiFi.h> // https://github.com/esp8266/Arduino
 #include <ESP8266WebServer.h>
 #include <Servo.h>
 #include <DNSServer.h>
 #include <PubSubClient.h> // behöver installeras
-#include "WiFiManager.h"  //https://github.com/tzapu/WiFiManager
+#include "WiFiManager.h"  // https://github.com/tzapu/WiFiManager
 
 #define motorPinRightDir 0   //D2
 #define motorPinRightSpeed 5 //D1
@@ -12,12 +12,12 @@
 #define servopin 13
 
 const char *mqtt_server = "maqiatto.com";
-const char *topic = "martin.pind@abbindustrigymnasium.se/motor";
-const char *topic2 = "martin.pind@abbindustrigymnasium.se/servo";
-#include "password.h" // importerar lösenord och skapar variablarna
-                      // user och pass
+const char *topic = "martin.pind@abbindustrigymnasium.se/motor";  // motor topic
+const char *topic2 = "martin.pind@abbindustrigymnasium.se/servo"; // servo topic
+#include "password.h"                                             // importerar lösenord och skapar variablarna
+                                                                  // user och pass
 
-WiFiClient espClient;
+WiFiClient espClient; // definerar vad pubsub ska använda osv
 PubSubClient client(espClient);
 Servo servo;
 
@@ -56,13 +56,13 @@ void reconnect()
 
 void setup()
 {
-  // put your setup code here, to run once:
+  // motor saker
   pinMode(motorPinRightDir, OUTPUT);
   pinMode(motorPinRightSpeed, OUTPUT);
   pinMode(motorPinLeftDir, OUTPUT);
   pinMode(motorPinLeftSpeed, OUTPUT);
 
-  Serial.begin(115200);
+  Serial.begin(115200); // serial + servo
   servo.attach(servopin);
 
   //WiFiManager
@@ -71,7 +71,7 @@ void setup()
   //reset settings - for testing
   // wifiManager.resetSettings();
 
-  if (!wifiManager.autoConnect("_Martins AP", "1234567890"))
+  if (!wifiManager.autoConnect("_Martins AP", "1234567890")) // wifiManager saker
   {
     Serial.println("failed to connect, we should reset as see if it connects");
     delay(3000);
@@ -83,12 +83,12 @@ void setup()
   Serial.println("connected to" + WiFi.localIP());
 
   client.setServer(mqtt_server, 1883);
-  client.setCallback(callback);
+  client.setCallback(callback); // kopplar till server
 }
 
 void loop()
 {
-  if (!client.connected())
+  if (!client.connected()) // altid upkopplad
   {
     reconnect();
   }
@@ -96,8 +96,8 @@ void loop()
 
   // Serial.println("Loop!!!*");
 
-  if (millis() > time_now + 500)
-  { // autostop
+  if (millis() > time_now + 500) // om inget kommando har blivigt skickat på 500 millisekunder
+  {                              // autostop
     Go(motorPinRightDir, motorPinRightSpeed, 0, 0);
 
     servo.write(90);
@@ -110,7 +110,7 @@ void callback(char *topic, byte *payload, unsigned int length)
   String topicStr;
   String payloadStr;
 
-  for (int i = 0; topic[i]; i++)
+  for (int i = 0; topic[i]; i++) // konstruera topic och payload
   {
     topicStr += topic[i];
   }
@@ -120,7 +120,7 @@ void callback(char *topic, byte *payload, unsigned int length)
     payloadStr += (char)payload[i];
   }
 
-  time_now = millis();
+  time_now = millis(); // när ett kommando har blivigt skickat
 
   // Serial.println("");
   // Serial.print("Message arrived - [");
@@ -128,14 +128,14 @@ void callback(char *topic, byte *payload, unsigned int length)
   // Serial.print("] ");
   // Serial.println(payloadStr);
 
-  if (topicStr == "martin.pind@abbindustrigymnasium.se/motor")
+  if (topicStr == topic) // motor topic
   {
-
+    // (1,2,3) till tre variablar 1, 2, 3
     int onoff = payloadStr.substring(1, payloadStr.indexOf(',')).toInt();
     int direction = payloadStr.substring(payloadStr.indexOf(',') + 1, payloadStr.lastIndexOf(',')).toInt();
     int speed = payloadStr.substring(payloadStr.lastIndexOf(',') + 1).toInt();
 
-    if (onoff)
+    if (onoff) // armerad
     {
       Go(motorPinRightDir, motorPinRightSpeed, direction, speed);
     }
@@ -144,11 +144,11 @@ void callback(char *topic, byte *payload, unsigned int length)
       Go(motorPinRightDir, motorPinRightSpeed, 0, 0);
     }
   }
-  else if (topicStr == "martin.pind@abbindustrigymnasium.se/servo")
+  else if (topicStr == topic2) // servo topic
   {
     int angle = payloadStr.toInt();
 
-    if (!angle == 90)
+    if (!angle == 90) // skriver om den Svänger
     {
       rikting = (angle > 90) ? "Höger" : "Vänster";
       Serial.println("Svänger " + rikting + " med ett värde av " + angle);
@@ -166,7 +166,7 @@ void Go(int Dirpin, int Speedpin, int Direction, int Speed)
 
   if (Speed != 0)
   {
-    Speed = map(Speed, 0, 100, 510, 1024);
+    Speed = map(Speed, 0, 100, 510, 1024); // ser till att motorn går igong och inte står stilla
     rikting = (Direction) ? "Framåt" : "Bakåt";
     Serial.println("Kör " + rikting + " med ett värde av " + Speed);
   }

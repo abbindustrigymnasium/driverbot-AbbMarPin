@@ -12,9 +12,7 @@ wn.title("Coordinate axis")
 turt.pd()
 turt.speed(10)
 
-
-
-speed_mult = 0.2
+speed_mult = 0.2 # konstanter för programmet
 ang_mult = 1
 updatefreq = 0.35
 hjul_bas = 9.5
