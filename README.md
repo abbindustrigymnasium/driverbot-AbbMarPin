@@ -3,6 +3,8 @@ driverbot-AbbMarPin created by GitHub Classroom
 
 ## Vad är detta?
 
+<img width="500" src="https://github.com/abbindustrigymnasium/driverbot-AbbMarPin/blob/master/Bilder/bil.png?raw=true">
+
 Detta är min bil. Den har en tt motor för drivning, en sg90 servo för styrning och 3D utskrivna delar för att koppla ihop lego:t med motorn och servot.
 
 Bilen kan köras med hjälp av en hemsida och en gamepad kontroll om man vill. Den kan köra framåt, bakåt och svänga och den har också ett inbyggt batteri för att kunna köra i flera timmar.
@@ -34,6 +36,14 @@ Arduinon använder WiFiManager för att lätt kunna koppla upp till nya WiFi nä
 Simulatorn är skrivet i python och använder turle bibloteket för att visa vart bilen är i verkligheten. Den gör sitt bästa för att simulera hur bilen skulle åka och har samma svängradie och hastighet.
 
 
+## Konstruktion
+If you know the enemy and
+know yourself you need not fear
+the results of a hundred battles.
+
+  -Sun Tzu
+
+Bilen har TT motorn Längst bak och Servot längst fram. Delarna som vi fick bygga med kunde ha varit mer varierad och med flera kugghjul. Innan sista designen som ni ser nu hade jag motorn till väster och ett par kugghjul som dirigerade vridmomentet till hjulen. Detta höll axlarna på plats mycket bra men utväxlingen var avledes för dålig. För att fixa detta behövdes endas ett medium kugghjul, men det fanns inte ledigt.
 
 # Loggbok
 
