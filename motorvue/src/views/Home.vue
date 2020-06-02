@@ -1,5 +1,6 @@
 <template>
   <v-container fluid>
+    <!-- gamepad setup -->
     <a v-gamepad:left-analog-left.repeat="_turnleft" />
     <a v-gamepad:left-analog-right.repeat="_turnright" />
     <a v-gamepad:trigger-right.repeat="_forward" />
@@ -126,7 +127,7 @@
             <span>Please connect an gamepad that's compadible with your browser</span>
           </v-card-actions>
         </v-container>
-        <v-alert type="error" :value="!connected">Not connected!</v-alert>
+        <v-alert type="error" class="mx-4" :value="!connected">Not connected!</v-alert>
       </v-card>
     </v-row>
   </v-container>
@@ -139,6 +140,12 @@ var mqtt = require("mqtt");
 
 // import {mapGetters} from 'vuex'
 // import {mapActions} from 'vuex'
+
+// kopplar upp sig, startar loop
+// tar in gamepad/slidervärden, packar in dem och skickar
+// kör igen
+// kopplar bort sig och stoppar loopen
+
 
 export default {
   name: "Home",
@@ -198,7 +205,7 @@ export default {
       this.client.publish(
         // "martin.pind@abbindustrigymnasium.se/motor",
         this.creds.motor_topic,
-        this.composemotor()
+        this.composemotor() // skicka det formaterade värdena
       );
       this.client.publish(
         // "martin.pind@abbindustrigymnasium.se/servo",
@@ -206,7 +213,7 @@ export default {
         this.composeservo()
       );
     },
-    mqttcontrol() {
+    mqttcontrol() { // kopplar upp och ned
       if (this.mqtt_state) {
         this.connect();
       } else {
@@ -216,7 +223,7 @@ export default {
         }
       }
     },
-    composemotor() {
+    composemotor() { // tar in motorvärden och formaterar ett förflyttningspaket
       let Direction = 0;
       let speed = 0;
       if (this.controloption == this.controloptions[0]) {
@@ -224,10 +231,10 @@ export default {
 
         if (this.slider > 0) {
           Direction = 1;
-          speed = this.slider;
+          speed = Math.round(this.slider);
         } else if (this.slider < 0) {
           Direction = 0;
-          speed = this.slider * -1;
+          speed = Math.round(this.slider) * -1;
         }
         return `(${this.onoff},${Direction},${speed})`;
       } else if (this.controloption == this.controloptions[1]) {
@@ -242,7 +249,7 @@ export default {
         return `(${this.onoff},${Direction},${speed})`;
       }
     },
-    composeservo() {
+    composeservo() { // tar in servo värden och formaterar ett styrpaket
       let angle = 90;
       if (this.controloption == this.controloptions[0]) {
         angle = Math.round(this.map_range(this.angle, -100, 100, 180, 0));
@@ -257,12 +264,12 @@ export default {
       }
       return `${angle}`;
     },
-    connect() {
-      let self = this;
+    connect() { // kopplar upp sig
+      let self = this; 
       var mqtt_url = this.creds.url;
       var url = "mqtt://" + mqtt_url;
       var options = {
-        port: this.creds.port,
+        port: this.creds.port, // mqtt saker
         clientId:
           "mqttjs_" +
           Math.random()
@@ -279,12 +286,12 @@ export default {
         .on("connect", function() {
           console.log("connected!!!");
           // self.callback_(true)
-          self.interval = setInterval(() => {
+          self.interval = setInterval(() => { // starta skicka loopen
             if (self.mqtt_state) {
-              self.send();
+              self.send(); // skicka om den ska det
             }
             self.turnleft = false;
-            self.turnright = false;
+            self.turnright = false; // nollställ kontroller värden
             self.forward = false;
             self.reverse = false;
           }, 200);
@@ -306,20 +313,20 @@ export default {
     },
     reset() {
       this.slider = 0;
-      this.onoff = 0;
+      this.onoff = 0; // reset knapp
       this.angle = 0;
     },
-    map_range(value, low1, high1, low2, high2) {
+    map_range(value, low1, high1, low2, high2) { // maprange som i arduino
       return low2 + ((high2 - low2) * (value - low1)) / (high1 - low1);
     },
-    callback_(state) {
+    callback_(state) { // test funktion
       // console.log("AAAAAAAAAAAA");
       this.connected = state;
     },
-    saveconf() {
+    saveconf() { // spara creds
       this.creds = this.temp_creds;
     },
-    _turnleft() {
+    _turnleft() { // kontroller funktioner
       this.turnleft = true;
       // console.log("left")
     },

@@ -38,15 +38,16 @@ def on_message(client, userdata, msg):
     global pos
 
     if msg.topic == username + "/motor": # läser in meddelandet
-        res = eval(str(msg.payload))
+        res = eval(msg.payload)
+        # print(res)
         pos["armed"] = res[0]
         pos["dir"] = res[1]
-        pos["speed"] = res[2] * speed_mult
+        pos["speed"] = round(res[2] * speed_mult)
 
     elif msg.topic == username + "/servo":
         ang = map_range(int(msg.payload) - 90, 90, -90, -19, 19)
         # print("ang:", ang)
-        pos["ang"] = ang * ang_mult
+        pos["ang"] = round(ang * ang_mult)
 
 
 def map_range(value, low1, high1, low2, high2): # map range som i arduino
