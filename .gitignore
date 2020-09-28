@@ -3,3 +3,5 @@ motorvue/node_modules
 mqtt_motor/password.h
 pass.py
 password.py
+*.mp4
+*.MOV
