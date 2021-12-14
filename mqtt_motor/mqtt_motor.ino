@@ -11,9 +11,13 @@
 #define motorPinLeftSpeed 4
 #define servopin 13
 
-const char *mqtt_server = "maqiatto.com";
-const char *topic = "martin.pind@abbindustrigymnasium.se/motor";  // motor topic
-const char *topic2 = "martin.pind@abbindustrigymnasium.se/servo"; // servo topic
+const char* mqtt_server = "maqiatto.com";
+const char* topic = "martin.pind@abbindustrigymnasium.se/motor";  // motor topic
+const char* topic2 = "martin.pind@abbindustrigymnasium.se/servo"; // servo topic
+
+const String Top1 = "martin.pind@abbindustrigymnasium.se/motor";
+const String Top2 = "martin.pind@abbindustrigymnasium.se/servo";  
+
 #include "password.h"                                             // importerar lösenord och skapar variablarna
                                                                   // user och pass
 
@@ -38,7 +42,7 @@ void reconnect()
     {
       Serial.println("connected");
       // Once connected, publish an announcement...
-      client.publish(topic, "hello world");
+      // client.publish(topic, "hello world");
       // ... and resubscribe
       client.subscribe(topic);
       client.subscribe(topic2);
@@ -96,11 +100,13 @@ void loop()
 
   // Serial.println("Loop!!!*");
 
-  if (millis() > time_now + 500) // om inget kommando har blivigt skickat på 500 millisekunder
+  if (millis() > time_now + 1000) // om inget kommando har blivigt skickat på 500 millisekunder
   {                              // autostop
+    // Serial.println("Autostopp...");
     Go(motorPinRightDir, motorPinRightSpeed, 0, 0);
 
     servo.write(90);
+    delay(1000);
   }
 }
 
@@ -120,6 +126,13 @@ void callback(char *topic, byte *payload, unsigned int length)
     payloadStr += (char)payload[i];
   }
 
+  // Serial.println();
+  // Serial.println("-----------");
+  // Serial.println(topicStr);
+  // Serial.println(payloadStr);
+  // Serial.println(topic);
+  // Serial.println(topic2);
+
   time_now = millis(); // när ett kommando har blivigt skickat
 
   // Serial.println("");
@@ -128,8 +141,9 @@ void callback(char *topic, byte *payload, unsigned int length)
   // Serial.print("] ");
   // Serial.println(payloadStr);
 
-  if (topicStr == topic) // motor topic
+  if (topicStr == Top1) // motor topic
   {
+    // Serial.println("Motor");
     // (1,2,3) till tre variablar 1, 2, 3
     int onoff = payloadStr.substring(1, payloadStr.indexOf(',')).toInt();
     int direction = payloadStr.substring(payloadStr.indexOf(',') + 1, payloadStr.lastIndexOf(',')).toInt();
@@ -137,21 +151,25 @@ void callback(char *topic, byte *payload, unsigned int length)
 
     if (onoff) // armerad
     {
+      
+      // Serial.println("Armerad");
       Go(motorPinRightDir, motorPinRightSpeed, direction, speed);
     }
     else
     {
+      // Serial.println("Inte Armerad");
       Go(motorPinRightDir, motorPinRightSpeed, 0, 0);
     }
   }
-  else if (topicStr == topic2) // servo topic
+  else if (topicStr == Top2) // servo topic
   {
+    // Serial.println("Servo");
     int angle = payloadStr.toInt();
 
     if (!angle == 90) // skriver om den Svänger
     {
       rikting = (angle > 90) ? "Höger" : "Vänster";
-      Serial.println("Svänger " + rikting + " med ett värde av " + angle);
+      // Serial.println("Svänger " + rikting + " med ett värde av " + angle);
     }
     servo.write(angle);
   }
@@ -168,7 +186,7 @@ void Go(int Dirpin, int Speedpin, int Direction, int Speed)
   {
     Speed = map(Speed, 0, 100, 510, 1024); // ser till att motorn går igong och inte står stilla
     rikting = (Direction) ? "Framåt" : "Bakåt";
-    Serial.println("Kör " + rikting + " med ett värde av " + Speed);
+    // Serial.println("Kör " + rikting + " med ett värde av " + Speed);
   }
 
   // Serial.println("Hastighet: " + String(Speed));
